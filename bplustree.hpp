@@ -15,38 +15,48 @@
 #include "lru.h"
 
 #define debug
-#define MAXNUM 5
-#define MINNUM 2
+
 //根据磁盘大小调整，在debug lru之后调整！
-struct mystring{
+struct mystring {
     char mychar[120];
-    mystring()=default;
-    mystring(char a[120]){
-        strcpy(mychar,a);
+
+    mystring() = default;
+
+    mystring(char a[120]) {
+        strcpy(mychar, a);
     }
-    mystring(const mystring & c){
-        strcpy(mychar,c.mychar);
+
+    mystring(const mystring &c) {
+        strcpy(mychar, c.mychar);
     }
+
     mystring &operator=(const mystring &other) {
         if (this == &other) return *this;
-        strcpy(mychar,other.mychar);
+        strcpy(mychar, other.mychar);
         return *this;
     }
-    bool operator<(const mystring c){
-        return strcmp(mychar,c.mychar)<0;
+
+    bool operator<(const mystring c) {
+        return strcmp(mychar, c.mychar) < 0;
     }
-    bool operator>(const mystring c){
-        return strcmp(mychar,c.mychar)>0;
+
+    bool operator>(const mystring c) {
+        return strcmp(mychar, c.mychar) > 0;
     }
-   friend bool operator==(const mystring &a1,const mystring &a2);
-   friend bool operator!=(const mystring &a1,const mystring &a2);
-    ~mystring()= default;
+
+    friend bool operator==(const mystring &a1, const mystring &a2);
+
+    friend bool operator!=(const mystring &a1, const mystring &a2);
+
+    ~mystring() = default;
 };
-inline  bool operator!=(const mystring &a1,const mystring &a2){
-    return strcmp(a1.mychar,a2.mychar)!=0;
+
+inline bool operator!=(const mystring &a1, const mystring &a2) {
+    return strcmp(a1.mychar, a2.mychar) != 0;
 }
-inline  bool operator==(const mystring &a1,const mystring &a2){
-    return strcmp(a1.mychar,a2.mychar)==0;
+
+inline bool operator==(const mystring &a1, const mystring &a2) {
+    return strcmp(a1.mychar, a2.mychar) == 0;
 }
 
 namespace sjtu {
@@ -56,175 +66,18 @@ namespace sjtu {
             class Compare = std::less<Key>
     >
     //std::less默认是<,key的排序方式由外部传入的变量决定
-
-
+#define MAXNUM 5
+#define MINNUM 2
 
     class BPtree {
-
-
-
-
-
-
-
-//
-//        template<typename infotype, int MAXSIZE = 500>
-//
-//        class Diskmanager {
-//
-//
-//        public:   class lrulist_node {
-//                lrulist_node() = default;
-//
-//            public:     lrulist_node *pre;
-//                lrulist_node *nxt;
-//            public:  infotype data;
-//            public:bool ismodified;
-//                int address = -1;
-//
-//                lrulist_node(lrulist_node *_pre, lrulist_node *after, int ad, infotype data_) : pre(_pre), nxt(after),
-//                                                                                                ismodified(false), data(data_),
-//                                                                                                address(ad) {
-//
-//                }
-//                lrulist_node(lrulist_node &other){
-//                    pre=other.pre,nxt=other.nxt,data=other.data,ismodified=other.ismodified,address=other.address;
-//                }
-//
-//
-//
-//            };
-//            using map_back = typename std::pair<bool,  lrulist_node *>;
-//        public:    lrulist_node *head= nullptr;
-//            lrulist_node *tail= nullptr;//这里的tail和head都是有实际内容的
-//            long long cachenum = 0;
-//            hashmap<int,typename  Diskmanager:: lrulist_node *> map_hash;
-//
-//            bool find(int address) {
-//                if (map_hash.find(address).first) {
-//                    lrulist_node *ans = map_hash.find(address).second;
-//                    if (ans->pre) {
-//                        lrulist_node *temppre = ans->pre;
-//                        lrulist_node *tempnxt = ans->nxt;
-//
-//                        lrulist_node *temphead = head;
-//                        ans->nxt = temphead;
-//                        temphead->pre = ans;
-//                        head = ans;
-//
-//                        if (tempnxt) tempnxt->pre = temppre, temppre->nxt = tempnxt;
-//                        else tail = temppre;
-//                        temppre->nxt = nullptr;
-//                    }
-//                    return true;
-//                }
-//                return false;
-//            }
-//            pair<int ,infotype> pop(){
-//                pair<int ,infotype> returnans;
-//                returnans.first=tail->address;
-//                returnans.second=tail->data;
-//                if (!tail->ismodified) returnans.first=-1;//若不变则不对文件作出修改
-//                map_hash.erase(tail->address);
-//
-//                lrulist_node *del=tail;
-//                lrulist_node *pretemp=tail->pre;
-//                if (pretemp) tail=pretemp,pretemp->nxt= nullptr;
-//                else head=tail= nullptr;
-//                delete del;
-//                cachenum--;
-//            }
-//            void push(int addrsee,infotype data){
-//                if (cachenum==0){
-//                    head=new lrulist_node(nullptr, nullptr,addrsee,data);
-//                    tail=head;
-//                    cachenum=1;
-//                } else{
-//                    ++cachenum;
-//                    lrulist_node *temp=new lrulist_node(nullptr,head,addrsee,data);
-//                    head->pre=temp;
-//                    head=temp;
-//                }
-//                map_hash.insert(addrsee,head);
-//                if (cachenum==MAXSIZE){
-//                    pair<int ,infotype> ans(pop());
-//                    if (ans.first!=-1){
-//                        file.seekg(ans.first);
-//                        file.write(reinterpret_cast<char*>((&ans.second)),sizeof (infotype));
-//                    }
-//                }
-//            }
-//
-//
-//        public:
-//            fstream file;
-//
-//        public:   Diskmanager() ;
-//            ~Diskmanager(){
-//                //写入未被修改的东西
-//                lrulist_node *ptr=head;
-//                while (ptr){
-//
-//                    if (ptr->ismodified){
-//                        file.seekg(ptr->address);
-//                        file.write(reinterpret_cast<char*>(&ptr->data),sizeof (infotype));
-//                    }
-//                    lrulist_node *del=ptr;
-//                    ptr=ptr->nxt;
-//
-//                }
-//                head=tail= nullptr;
-//                file.close();
-//
-//
-//            }
-//
-//        public:
-//            void read(int infoaddrss, infotype &info) {
-//                if (find(infoaddrss)) {
-//                    map_back aaaans=map_hash.find(infoaddrss);
-//                    lrulist_node * tmp=aaaans.second;
-//                    info=tmp->data;
-//                }
-//                else{
-//                    file.seekg(infoaddrss);
-//                    file.read(reinterpret_cast<char *>(&info), sizeof(info));
-//                    push(infoaddrss,info);
-//                }
-//            }
-//
-//        public:
-//            void write(int infoaddress, infotype &info) {
-////反复读不代表会反复写,所以不用丢入双向链表中
-//                map_back aaaans=map_hash.find(infoaddress);
-//                lrulist_node * tmp(aaaans.second);
-//                if (aaaans.first){
-//
-//                    if (tmp->data!=info){
-//                        tmp->data=info;
-//                        aaaans.first= true;
-//                    }
-//
-//                } else {
-//                    file.seekg(infoaddress);
-//                    file.write(reinterpret_cast<char *>(&info), sizeof(info));
-//                }}
-//        };
-//
-//
-
-
-
-
-
-
-
-
-
     public:
         typedef std::pair<Key, T> value_type;
 
         Compare cmp;
+        const int MAX = ((4096 - sizeof(int) * 4 - sizeof(bool)) / sizeof(Key) + sizeof(T) - 1) % 2 == 0 ?
+                        (4096 - sizeof(int) * 4 - sizeof(bool)) / sizeof(Key) + sizeof(T) - 2 :
+                        (4096 - sizeof(int) * 4 - sizeof(bool)) / sizeof(Key) + sizeof(T) - 1;
+        const int MIN = MAX / 2;
 
     public:
 
@@ -250,7 +103,7 @@ namespace sjtu {
                 }
             }
 
-            node( const node &other) {
+            node(const node &other) {
                 fa = other.fa;
                 size = other.size;
                 is_leaf = other.is_leaf, pre = other.pre, nxt = other.nxt;
@@ -270,18 +123,19 @@ namespace sjtu {
                 }
                 return *this;
             }
-            bool  operator!=(const node &other){
-                if (this==&other) return false;
-                if (fa!=other.fa) return true;
-                if (size!=other.size) return true;
-                if (is_leaf!=other.is_leaf) return true;
-                if (pre!=other.pre) return true;
-                if (nxt!=other.nxt) return true;
-                for (int i = 0; i <=size ; ++i) {
-                    if (info[i]!=other.info[i]) return true;
+
+            bool operator!=(const node &other) {
+                if (this == &other) return false;
+                if (fa != other.fa) return true;
+                if (size != other.size) return true;
+                if (is_leaf != other.is_leaf) return true;
+                if (pre != other.pre) return true;
+                if (nxt != other.nxt) return true;
+                for (int i = 0; i <= size; ++i) {
+                    if (info[i] != other.info[i]) return true;
                 }
-                for (int i = 0; i <=size ; ++i) {
-                    if (address[i]!=other.address[i]) return true;
+                for (int i = 0; i <= size; ++i) {
+                    if (address[i] != other.address[i]) return true;
                 }
                 return false;
             }
@@ -307,7 +161,7 @@ namespace sjtu {
             T tempvalue = temp.second;
             int nxtnode = basic.root;
 
-            if (nxtnode==-1) return -1;
+            if (nxtnode == -1) return -1;
 
             f11.read(nxtnode, pos);
 //            f1.seekg(nxtnode);
@@ -341,7 +195,7 @@ namespace sjtu {
             f11.read(nxtnode, pos);
 //            f1.seekg(nxtnode);
 //            f1.read(reinterpret_cast<char *>(&pos), sizeof(node));
-           //   showleaf(pos);
+            //   showleaf(pos);
             if (pos.nxt == -1) {
                 for (int i = 1; i <= pos.size; ++i) {
                     value_type read;
@@ -383,6 +237,38 @@ namespace sjtu {
 //todo
             return ans;
 
+
+        }
+
+        bool update(value_type pre,T nowdata){
+            Key tempkey = pre.first;
+            T tempdata = pre.second;
+            node ntr;
+            int erasepos = searchforleaf(tempkey, ntr);
+            if (erasepos == -1) return false;
+            while (true) {
+                for (int i = 1; i <= ntr.size; ++i) {
+                    if (ntr.info[i] > tempkey) break;
+                    if (ntr.info[i] < tempkey) continue;
+                    if (ntr.info[i] == tempkey) {
+                        value_type nowvaluetype;
+                        f22.read(ntr.address[i], nowvaluetype);
+                        if (nowvaluetype.second == tempdata) {
+                            nowvaluetype.second=nowdata;
+                           f22.write(ntr.address[i],nowvaluetype);
+                            return true;
+                        }
+                    }
+                }
+                erasepos = ntr.pre;
+                if (erasepos == -1) break;
+                f11.read(erasepos, ntr);
+                if (ntr.info[ntr.size] < tempkey) break;
+            }
+            return false;
+        }
+
+        std::vector<value_type> rangefind(Key key1,Key key2){
 
         }
 
@@ -604,13 +490,11 @@ namespace sjtu {
         bool erase(value_type tempval) {
 
 
-
-
             Key tempkey = tempval.first;
             T tempdata = tempval.second;
             node ntr;
             int erasepos = searchforleaf(tempval, ntr);
-            if (erasepos==-1) return false;
+            if (erasepos == -1) return false;
             while (true) {
                 for (int i = 1; i <= ntr.size; ++i) {
                     if (ntr.info[i] > tempkey) break;
@@ -1058,24 +942,24 @@ namespace sjtu {
             std::cout << "_____________________________/debug node" << std::endl;
             std::cout << std::endl;
         }
-        friend ostream &operator<<( ostream &output,
-                                    const node &a )
-        {
-            output << "_____________________________/debug node" ;
-            output << "size:    " << a.size << "     pre:" << a.pre << "    nxt:" << a.nxt << "  fa:    " << a.fa
-                      << "std::endl     ";
-            for (int i = 0; i <= a.size; ++i) {
-                output << "  pos:" << i << "    address[]" << a.address[i] << "     info:" << a.info[i] <<"    ";
-            }
-            output << "_____________________________/debug node" ;
 
+        friend ostream &operator<<(ostream &output,
+                                   const node &a) {
+            output << "_____________________________/debug node";
+            output << "size:    " << a.size << "     pre:" << a.pre << "    nxt:" << a.nxt << "  fa:    " << a.fa
+                   << "std::endl     ";
+            for (int i = 0; i <= a.size; ++i) {
+                output << "  pos:" << i << "    address[]" << a.address[i] << "     info:" << a.info[i] << "    ";
+            }
+            output << "_____________________________/debug node";
 
 
             return output;
         }
+
     public:
-        Diskmanager<node,500> f11;
-        Diskmanager<value_type,500> f22;
+        Diskmanager<node, 500> f11;
+        Diskmanager<value_type, 500> f22;
         // std::fstream f1, f2;//f1是索引文档，f2是数据文档
         int sum_size;
         int data_end;//may be useless
@@ -1086,7 +970,7 @@ namespace sjtu {
 
         };
 
-        BPtree(std::string a, std::string b) :f11(a),f22(b){
+        BPtree(std::string a, std::string b) : f11(a), f22(b) {
 
             treename = a, dataname = b;
             f11.file.seekg(0, std::ios::end);
